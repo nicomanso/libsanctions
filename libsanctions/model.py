@@ -243,6 +243,7 @@ class Entity(Base, NameMixIn):
     summary = Column(Stringify, nullable=True)
     function = Column(Stringify, nullable=True)
     program = Column(Stringify, nullable=True)
+    url = Column(Stringify, nullable=True)
     listed_at = Column(Date, nullable=True)
     updated_at = Column(Date, nullable=True)
     timestamp = Column(DateTime, nullable=False)
@@ -293,6 +294,7 @@ class Entity(Base, NameMixIn):
         data['program'] = self.program
         data['function'] = self.function
         data['summary'] = self.summary
+        data['url'] = self.url
         data['listed_at'] = self.listed_at
         data['updated_at'] = self.updated_at
         data['timestamp'] = self.timestamp.isoformat()

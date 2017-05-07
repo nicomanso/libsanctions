@@ -4,6 +4,7 @@ import warnings
 
 from libsanctions.source import Source  # noqa
 from libsanctions.model import Identifier, Entity, Alias, Address, Birth  # noqa
+from libsanctions.util import make_uid  # noqa
 
 warnings.simplefilter("ignore")
 

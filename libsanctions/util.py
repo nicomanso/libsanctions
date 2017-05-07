@@ -1,4 +1,6 @@
+from normality import stringify
 from collections import OrderedDict
+from hashlib import sha1
 
 
 def remove_namespace(doc, namespace):
@@ -8,6 +10,15 @@ def remove_namespace(doc, namespace):
     for elem in doc.getiterator():
         if elem.tag.startswith(ns):
             elem.tag = elem.tag[nsl:]
+
+
+def make_uid(*args):
+    uid = sha1()
+    for arg in args:
+        arg = stringify(arg)
+        if arg is not None:
+            uid.update(arg.encode('utf-8'))
+    return uid.hexdigest()
 
 
 def clean_obj(data):
