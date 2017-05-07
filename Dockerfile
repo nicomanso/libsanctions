@@ -1,7 +1,7 @@
-FROM pudo/scraper-base
+FROM python:3.3
 MAINTAINER Friedrich Lindenberg <friedrich@pudo.org>
 
-COPY . /opennames
-WORKDIR /opennames
-RUN pip install -q -r requirements.txt && pip install -q -e .
-CMD /bin/bash run.sh
+RUN pip install -q unicodecsv==0.14.1 normality>=0.4.2 fingerprints>=0.4.0 \
+  countrynames jsonschema>=2.6.0 requests>=2.13 lxml xlrd six sqlalchemy>=1.1
+COPY . /libsanctions
+RUN cd /libsanctions && pip install -q -e .
