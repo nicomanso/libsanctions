@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 import boto3
 
@@ -9,6 +10,7 @@ log = logging.getLogger(__name__)
 
 LATEST = 'latest'
 CSV_FORMAT = 'v1/sources/%s/%s/%s'
+JSON_FORMAT = 'v1/entities/%s/%s'
 
 
 def get_bucket():
@@ -34,5 +36,12 @@ def upload_csv(bucket, source, run, file_path):
     obj = bucket.Object(key_name)
     obj.upload_file(file_path, ExtraArgs=args)
     copy_name = CSV_FORMAT % (source, LATEST, file_name)
-    copy_source = {'key': key_name, 'bucket': AWS_BUCKET}
+    copy_source = {'Key': key_name, 'Bucket': AWS_BUCKET}
     bucket.copy(copy_source, copy_name, ExtraArgs=args)
+
+
+def upload_entity(bucket, entity):
+    key_name = JSON_FORMAT % (entity.source, entity.id)
+    obj = bucket.Object(key_name)
+    obj.put(ACL='public-read', ContentType='application/json',
+            Body=json.dumps(entity.to_json()))
