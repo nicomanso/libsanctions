@@ -1,9 +1,10 @@
 import countrynames
+from dalet import parse_date
 from datetime import datetime
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, validates
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Unicode, Integer, DateTime, Date
+from sqlalchemy import Column, Unicode, Integer, DateTime
 from sqlalchemy import ForeignKey
 
 from libsanctions.config import DATABASE_URI
@@ -77,13 +78,18 @@ class Entity(Base, NameMixIn):
     summary = Column(Unicode, nullable=True)
     function = Column(Unicode, nullable=True)
     program = Column(Unicode, nullable=True)
-    listed_at = Column(Date, nullable=True)
-    updated_at = Column(Date, nullable=True)
+    listed_at = Column(Unicode, nullable=True)
+    updated_at = Column(Unicode, nullable=True)
     timestamp = Column(DateTime, nullable=False)
 
     def __init__(self, id):
         self.id = id
         self.timestamp = datetime.utcnow()
+
+    @validates('listed_at')
+    @validates('updated_at')
+    def validate_date(self, key, date):
+        return parse_date(date)
 
     def create_alias(self, name=None):
         alias = Alias(self.id, name=name)

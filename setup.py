@@ -29,6 +29,7 @@ setup(
         'jsonschema>=2.6.0',
         'sqlalchemy>=1.1.0',
         'requests>=2.13',
+        'dalet',
         'lxml',
         'xlrd',
         'six'
