@@ -36,8 +36,10 @@ class Source(object):
     def create_entity(self, *keys):
         keys = [slugify(k, sep='-') for k in keys]
         entity_id = '-'.join([k for k in keys if k is not None])
-        entity = Entity(self.name, entity_id)
-        session.add(entity)
+        entity = Entity.by_id(self.name, entity_id)
+        if entity is None:
+            entity = Entity(self.name, entity_id)
+            session.add(entity)
         self.entity_count += 1
         return entity
 

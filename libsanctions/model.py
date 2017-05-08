@@ -313,3 +313,10 @@ class Entity(Base, NameMixIn):
         data['nationalities'] = [n.to_json() for n in self.nationalities]
         data['births'] = [b.to_json() for b in self.births]
         return clean_obj(data)
+
+    @classmethod
+    def by_id(cls, source, id):
+        q = session.query(cls)
+        q = q.filter(cls.id == id)
+        q = q.filter(cls.source == source)
+        return q.first()
