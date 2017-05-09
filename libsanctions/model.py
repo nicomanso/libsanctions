@@ -51,6 +51,7 @@ class NameMixIn(object):
     first_name = Column(Stringify, nullable=True)
     second_name = Column(Stringify, nullable=True)
     third_name = Column(Stringify, nullable=True)
+    father_name = Column(Stringify, nullable=True)
     last_name = Column(Stringify, nullable=True)
 
     @hybrid_property
@@ -58,7 +59,8 @@ class NameMixIn(object):
         if self._name is not None:
             return self._name
         names = (self.first_name, self.second_name,
-                 self.third_name, self.last_name)
+                 self.third_name, self.father_name,
+                 self.last_name)
         names = [n for n in names if n is not None]
         if len(names):
             return collapse_spaces(' '.join(names))
@@ -101,18 +103,21 @@ class CountryMixIn(object):
         return data
 
 
-class Alias(Base, NameMixIn, JsonRowMixIn):
-    """An alternate name for an indivdual."""
-    __tablename__ = 'alias'
-
+class QualityMixIn(object):
     QUALITY_WEAK = 'weak'
     QUALITY_STRONG = 'strong'
+
+    quality = Column(Stringify, nullable=True)
+
+
+class Alias(Base, NameMixIn, QualityMixIn, JsonRowMixIn):
+    """An alternate name for an indivdual."""
+    __tablename__ = 'alias'
 
     id = Column(Integer, primary_key=True)
     entity_id = Column(Unicode, ForeignKey('data.id'))
     entity = relationship("Entity", backref="aliases")
     type = Column(Stringify, nullable=True)
-    quality = Column(Stringify, nullable=True)
     description = Column(Stringify, nullable=True)
 
     def __init__(self, entity_id, name=None):
@@ -202,18 +207,32 @@ class Nationality(Base, CountryMixIn, JsonRowMixIn):
         return self.to_country_dict()
 
 
-class Birth(Base, CountryMixIn, JsonRowMixIn):
+class BirthDate(Base, QualityMixIn, JsonRowMixIn):
     """Details regarding the birth of an entity."""
-    __tablename__ = 'birth'
-
-    TYPE_EXACT = 'exact'
-    TYPE_APPROXIMATE = 'approximate'
+    __tablename__ = 'birth_date'
 
     id = Column(Integer, primary_key=True)
     entity_id = Column(String, ForeignKey('data.id'))
-    entity = relationship("Entity", backref="births")
-    type = Column(Stringify, nullable=True)
+    entity = relationship("Entity", backref="birth_dates")
     date = Column(Date, nullable=True)
+
+    def __init__(self, entity_id):
+        self.entity_id = entity_id
+
+    def to_json(self):
+        data = OrderedDict()
+        data['quality'] = self.quality
+        data['date'] = self.date
+        return data
+
+
+class BirthPlace(Base, QualityMixIn, CountryMixIn, JsonRowMixIn):
+    """Details regarding the birth of an entity."""
+    __tablename__ = 'birth_place'
+
+    id = Column(Integer, primary_key=True)
+    entity_id = Column(String, ForeignKey('data.id'))
+    entity = relationship("Entity", backref="birth_places")
     place = Column(Stringify, nullable=True)
     description = Column(Stringify, nullable=True)
 
@@ -222,8 +241,7 @@ class Birth(Base, CountryMixIn, JsonRowMixIn):
 
     def to_json(self):
         data = OrderedDict()
-        data['type'] = self.type
-        data['date'] = self.date
+        data['quality'] = self.quality
         data.update(self.to_country_dict())
         data['place'] = self.place
         data['description'] = self.description
@@ -277,10 +295,15 @@ class Entity(Base, NameMixIn):
         session.add(nationality)
         return nationality
 
-    def create_birth(self):
-        birth = Birth(self.id)
-        session.add(birth)
-        return birth
+    def create_birth_date(self):
+        birth_date = BirthDate(self.id)
+        session.add(birth_date)
+        return birth_date
+
+    def create_birth_place(self):
+        birth_place = BirthPlace(self.id)
+        session.add(birth_place)
+        return birth_place
 
     def save(self):
         self.timestamp = datetime.utcnow()
@@ -311,7 +334,8 @@ class Entity(Base, NameMixIn):
         data['addresses'] = [a.to_json() for a in self.addresses]
         data['identifiers'] = [i.to_json() for i in self.identifiers]
         data['nationalities'] = [n.to_json() for n in self.nationalities]
-        data['births'] = [b.to_json() for b in self.births]
+        data['birth_dates'] = [b.to_json() for b in self.birth_dates]
+        data['birth_places'] = [b.to_json() for b in self.birth_places]
         return clean_obj(data)
 
     @classmethod

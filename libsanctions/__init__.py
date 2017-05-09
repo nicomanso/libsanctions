@@ -3,7 +3,8 @@ import warnings
 # from sqlalchemy.exc import SAWarning
 
 from libsanctions.source import Source  # noqa
-from libsanctions.model import Identifier, Entity, Alias, Address, Birth  # noqa
+from libsanctions.model import Identifier, Entity, Alias, Address  # noqa
+from libsanctions.model import BirthPlace, BirthDate  # noqa
 from libsanctions.util import make_uid  # noqa
 
 warnings.simplefilter("ignore")

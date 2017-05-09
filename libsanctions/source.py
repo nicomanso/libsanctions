@@ -4,8 +4,8 @@ from pprint import pprint  # noqa
 from datetime import datetime
 
 from libsanctions.model import engine, session, Base
-from libsanctions.model import Entity, Address, Alias
-from libsanctions.model import Identifier, Birth, Nationality
+from libsanctions.model import Entity, Address, Alias, Nationality
+from libsanctions.model import Identifier, BirthDate, BirthPlace
 from libsanctions.export import export_csv_table
 from libsanctions.archive import get_bucket, upload_csv
 
@@ -17,7 +17,8 @@ CSV_EXPORTS = (
     (Address, 'addresses'),
     (Alias, 'aliases'),
     (Identifier, 'identifiers'),
-    (Birth, 'births'),
+    (BirthDate, 'birthdates'),
+    (BirthPlace, 'birthplaces'),
     (Nationality, 'nationalities')
 )
 
