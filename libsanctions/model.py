@@ -170,6 +170,7 @@ class Identifier(Base, CountryMixIn, JsonRowMixIn):
 
     TYPE_PASSPORT = u'passport'
     TYPE_NATIONALID = u'nationalid'
+    TYPE_OTHER = u'other'
 
     id = Column(Integer, primary_key=True)
     entity_id = Column(String, ForeignKey('data.id'))
@@ -254,6 +255,7 @@ class Entity(Base, NameMixIn):
 
     TYPE_ENTITY = 'entity'
     TYPE_INDIVIDUAL = 'individual'
+    TYPE_VESSEL = 'vessel'
 
     GENDER_MALE = 'male'
     GENDER_FEMALE = 'female'
