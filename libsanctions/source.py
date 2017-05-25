@@ -1,26 +1,14 @@
 import logging
 from normality import slugify
 from pprint import pprint  # noqa
-from datetime import datetime
+from morphium import Archive
 
-from libsanctions.model import engine, session, Base
-from libsanctions.model import Entity, Address, Alias, Nationality
-from libsanctions.model import Identifier, BirthDate, BirthPlace
-from libsanctions.export import export_csv_table
-from libsanctions.archive import get_bucket, upload_csv
+from libsanctions.model import Entity, Base, engine, session
+from libsanctions.export import export_csv_tables, export_ijson
+from libsanctions.config import BUCKET
 
 
 log = logging.getLogger(__name__)
-
-CSV_EXPORTS = (
-    (Entity, 'entities'),
-    (Address, 'addresses'),
-    (Alias, 'aliases'),
-    (Identifier, 'identifiers'),
-    (BirthDate, 'birthdates'),
-    (BirthPlace, 'birthplaces'),
-    (Nationality, 'nationalities')
-)
 
 
 class Source(object):
@@ -28,8 +16,8 @@ class Source(object):
     def __init__(self, name):
         self.name = name
         self.log = logging.getLogger(name)
-        self.run = datetime.utcnow().date().isoformat()
-        self.bucket = get_bucket()
+        prefix = 'v1/sources/%s' % name
+        self.archive = Archive(bucket=BUCKET, prefix=prefix)
         self.entity_count = 0
         Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
@@ -44,12 +32,7 @@ class Source(object):
         self.entity_count += 1
         return entity
 
-    def generate_csv(self):
-        for model, file_name in CSV_EXPORTS:
-            file_path = export_csv_table(model, file_name)
-            if self.bucket is not None and file_path is not None:
-                upload_csv(self.bucket, self.name, self.run, file_path)
-
     def finish(self):
         self.log.info("Parsed %s entities", self.entity_count)
-        self.generate_csv()
+        export_csv_tables(self.archive)
+        export_ijson(self.archive, self.name)
