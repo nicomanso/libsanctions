@@ -82,6 +82,14 @@ class NameMixIn(object):
         data['title'] = self.title
         return data
 
+    def from_name_dict(self, data):
+        self.name = data.get('name')
+        self.first_name = data.get('first_name')
+        self.second_name = data.get('second_name')
+        self.third_name = data.get('third_name')
+        self.last_name = data.get('last_name')
+        self.title = data.get('title')
+
 
 class CountryMixIn(object):
     country_name = Column(Stringify, nullable=True)
@@ -101,6 +109,10 @@ class CountryMixIn(object):
         data['country'] = self.country_name
         data['country_code'] = self.country_code
         return data
+
+    def from_country_dict(self, data):
+        self.country_name = data.get('country')
+        self.country_code = data.get('country_code')
 
 
 class QualityMixIn(object):
@@ -130,6 +142,12 @@ class Alias(Base, NameMixIn, QualityMixIn, JsonRowMixIn):
         data['quality'] = self.quality
         data['description'] = self.description
         return data
+
+    def from_json(self, data):
+        self.from_name_dict(data)
+        self.type = data.get('type')
+        self.quality = data.get('quality')
+        self.description = data.get('description')
 
 
 class Address(Base, CountryMixIn, JsonRowMixIn):
@@ -163,6 +181,16 @@ class Address(Base, CountryMixIn, JsonRowMixIn):
         })
         return data
 
+    def from_json(self, data):
+        self.from_country_dict(data)
+        self.text = data.get('text')
+        self.note = data.get('note')
+        self.street = data.get('street')
+        self.street_2 = data.get('street_2')
+        self.postal_code = data.get('postal_code')
+        self.city = data.get('city')
+        self.region = data.get('region')
+
 
 class Identifier(Base, CountryMixIn, JsonRowMixIn):
     """A document issued to an entity."""
@@ -192,6 +220,13 @@ class Identifier(Base, CountryMixIn, JsonRowMixIn):
         data['description'] = self.description
         return data
 
+    def from_json(self, data):
+        self.from_country_dict(data)
+        self.type = data.get('type')
+        self.number = data.get('number')
+        self.issued_at = data.get('issued_at')
+        self.description = data.get('description')
+
 
 class Nationality(Base, CountryMixIn, JsonRowMixIn):
     """A nationality associated with an entity."""
@@ -206,6 +241,9 @@ class Nationality(Base, CountryMixIn, JsonRowMixIn):
 
     def to_json(self):
         return self.to_country_dict()
+
+    def from_json(self, data):
+        self.from_country_dict(data)
 
 
 class BirthDate(Base, QualityMixIn, JsonRowMixIn):
@@ -225,6 +263,10 @@ class BirthDate(Base, QualityMixIn, JsonRowMixIn):
         data['quality'] = self.quality
         data['date'] = self.date
         return data
+
+    def from_json(self, data):
+        self.quality = data.get('quality')
+        self.date = data.get('date')
 
 
 class BirthPlace(Base, QualityMixIn, CountryMixIn, JsonRowMixIn):
@@ -247,6 +289,12 @@ class BirthPlace(Base, QualityMixIn, CountryMixIn, JsonRowMixIn):
         data['place'] = self.place
         data['description'] = self.description
         return data
+
+    def from_json(self, data):
+        self.from_country_dict(data)
+        self.quality = data.get('quality')
+        self.place = data.get('place')
+        self.description = data.get('description')
 
 
 class Entity(Base, NameMixIn):
@@ -339,6 +387,47 @@ class Entity(Base, NameMixIn):
         data['birth_dates'] = [b.to_json() for b in self.birth_dates]
         data['birth_places'] = [b.to_json() for b in self.birth_places]
         return clean_obj(data)
+
+    @classmethod
+    def from_json(cls, data):
+        entity = cls(data.get('source'), data.get('id'))
+        session.add(entity)
+        entity.from_name_dict(data)
+        entity.type = data.get('type')
+        entity.program = data.get('program')
+        entity.function = data.get('function')
+        entity.summary = data.get('summary')
+        entity.url = data.get('url')
+        entity.gender = data.get('gender')
+        entity.listed_at = data.get('listed_at')
+        entity.updated_at = data.get('updated_at')
+        # entity.timestamp = data.get('timestamp')
+
+        for subdata in data.get('aliases', []):
+            alias = entity.create_alias()
+            alias.from_json(subdata)
+
+        for subdata in data.get('addresses', []):
+            address = entity.create_address()
+            address.from_json(subdata)
+
+        for subdata in data.get('identifiers', []):
+            identifier = entity.create_identifier()
+            identifier.from_json(subdata)
+
+        for subdata in data.get('nationalities', []):
+            nationality = entity.create_nationality()
+            nationality.from_json(subdata)
+
+        for subdata in data.get('birth_dates', []):
+            birth_date = entity.create_birth_date()
+            birth_date.from_json(subdata)
+
+        for subdata in data.get('birth_places', []):
+            birth_place = entity.create_birth_place()
+            birth_place.from_json(subdata)
+
+        session.add(entity)
 
     @classmethod
     def by_id(cls, source, id):
