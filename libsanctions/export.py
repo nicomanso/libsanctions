@@ -51,13 +51,18 @@ def export_csv_table(archive, model, name):
         os.unlink(file_path)
 
 
+def export_isjon_entity(source, entity_id, fh):
+    entity = Entity.by_id(source, entity_id)
+    line = json.dumps(entity.to_json())
+    fh.write('%s\n' % line)
+
+
 def export_ijson(archive, source):
     file_path = os.path.join(_make_export_path(), '%s.ijson' % source)
     log.info("Exporting iJSON to %s...", file_path)
     with open(file_path, 'w') as fh:
-        for entity in session.query(Entity):
-            line = json.dumps(entity.to_json())
-            fh.write('%s\n' % line)
+        for (entity_id,) in session.query(Entity.id):
+            export_isjon_entity(source, entity_id, fh)
 
     url = archive.upload_file(file_path, mime_type='application/json')
     if url is not None:
