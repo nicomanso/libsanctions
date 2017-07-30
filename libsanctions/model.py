@@ -58,12 +58,12 @@ class NameMixIn(object):
     def name(self):
         if self._name is not None:
             return self._name
-        names = (self.first_name, self.second_name,
-                 self.third_name, self.father_name,
-                 self.last_name)
+        names = (self.first_name, self.second_name, self.third_name,
+                 self.father_name, self.last_name)
         names = [n for n in names if n is not None]
         if len(names):
-            return collapse_spaces(' '.join(names))
+            names = ' '.join(names)
+            return collapse_spaces(names)
 
     @name.setter
     def name(self, name):
@@ -78,6 +78,7 @@ class NameMixIn(object):
         data['first_name'] = self.first_name
         data['second_name'] = self.second_name
         data['third_name'] = self.third_name
+        data['father_name'] = self.father_name
         data['last_name'] = self.last_name
         data['title'] = self.title
         return data
@@ -87,6 +88,7 @@ class NameMixIn(object):
         self.first_name = data.get('first_name')
         self.second_name = data.get('second_name')
         self.third_name = data.get('third_name')
+        self.father_name = data.get('father_name')
         self.last_name = data.get('last_name')
         self.title = data.get('title')
 
