@@ -23,8 +23,8 @@ setup(
     test_suite='nose.collector',
     install_requires=[
         'unicodecsv==0.14.1',
-        'normality>=0.4.2',
-        'fingerprints>=0.4.0',
+        'normality==0.4.2',
+        'fingerprints==0.4.0',
         'countrynames',
         'jsonschema>=2.6.0',
         'sqlalchemy>=1.1.0',
